@@ -1,0 +1,30 @@
+# openspec/config.yaml - SDD Configuration for parchís-pathfinder
+
+schema: spec-driven
+
+context: |
+  Project: parchís-pathfinder - Optimal move calculator for Parchís board game
+  Tech stack: Computer vision (OpenCV), ADB for Android emulator connection, Python
+  Architecture: CV-based board state detection, move optimization algorithm, overlay rendering
+  Target: Linux host connecting to Android emulator via ADB
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages (cv_detector, pathfinder, overlay)
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for CV detection flow
+    - Document architecture decisions with rationale
+  tasks:
+    - Group tasks by phase (infrastructure, cv_detection, pathfinding, overlay, integration)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Use Python best practices
+    - Follow OpenCV best practices for image processing
+  verify:
+    - Test CV detection accuracy on sample screenshots
+    - Verify overlay renders correctly on emulator

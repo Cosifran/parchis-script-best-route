@@ -1,0 +1,27 @@
+# Runtime settings for Parchís Pathfinding Tool
+
+adb:
+  host: '192.168.1.4'
+  port: 5554
+  timeout: 10
+  retry_count: 3
+
+overlay:
+  enabled: true
+  opacity: 0.3
+  highlight_color: 'green'
+  show_message: true
+
+detection:
+  min_piece_area: 500
+  confidence_threshold: 0.7
+  capture_latency_ms: 500
+
+pathfinding:
+  show_top_n: 3
+  auto_detect_dice: false
+
+debug:
+  enabled: false
+  save_screenshots: false
+  log_level: 'INFO'
