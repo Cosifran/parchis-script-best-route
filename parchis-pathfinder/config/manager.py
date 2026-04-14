@@ -53,18 +53,18 @@ class ConfigManager:
     
     DEFAULT_CALIBRATION = {
         'corners': {
-            'top_left': (0.1, 0.1),
-            'top_right': (0.9, 0.1),
-            'bottom_left': (0.1, 0.9),
-            'bottom_right': (0.9, 0.9),
+            'top_left': [0.1, 0.1],
+            'top_right': [0.9, 0.1],
+            'bottom_left': [0.1, 0.9],
+            'bottom_right': [0.9, 0.9],
         },
         'hsv_ranges': {
-            'blue': {'lower': (100, 150, 50), 'upper': (140, 255, 255)},
-            'yellow': {'lower': (20, 150, 150), 'upper': (30, 255, 255)},
-            'green': {'lower': (40, 100, 50), 'upper': (80, 255, 255)},
-            'red': {'lower': (0, 150, 100), 'upper': (10, 255, 255)},
+            'blue': {'lower': [100, 150, 50], 'upper': [140, 255, 255]},
+            'yellow': {'lower': [20, 150, 150], 'upper': [30, 255, 255]},
+            'green': {'lower': [40, 100, 50], 'upper': [80, 255, 255]},
+            'red': {'lower': [0, 150, 100], 'upper': [10, 255, 255]},
         },
-        'offset': (0, 0),
+        'offset': [0, 0],
         'safe_zones': [0, 8, 13, 21, 26, 34, 39, 47],
         'start_positions': {
             'blue': 0,
@@ -129,12 +129,25 @@ class ConfigManager:
     def _save_yaml(self, path: str, data: dict) -> bool:
         """Save YAML file."""
         try:
+            # Convert tuples to lists for YAML compatibility
+            data = self._convert_tuples_to_lists(data)
+            
             with open(path, 'w') as f:
                 yaml.dump(data, f, default_flow_style=False)
             return True
         except Exception as e:
             logger.error(f"Error saving YAML {path}: {e}")
             return False
+    
+    def _convert_tuples_to_lists(self, obj):
+        """Recursively convert tuples to lists for YAML compatibility."""
+        if isinstance(obj, tuple):
+            return list(obj)
+        elif isinstance(obj, dict):
+            return {k: self._convert_tuples_to_lists(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_tuples_to_lists(item) for item in obj]
+        return obj
     
     def load_settings(self) -> dict:
         """Load settings from file."""
