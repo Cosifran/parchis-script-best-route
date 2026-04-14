@@ -323,7 +323,7 @@ def main():
                 return 1
             app.initialize_components()
             screenshot = app.capture_screenshot('screenshot.png')
-            if screenshot:
+            if screenshot is not None:
                 print(f"Screenshot captured: {screenshot.shape}")
                 return 0
             return 1
@@ -333,7 +333,7 @@ def main():
                 return 1
             app.initialize_components()
             board_state = app.detect_board()
-            if board_state:
+            if board_state is not None:
                 print(f"Board detected:")
                 print(f"  Confidence: {board_state.confidence:.2f}")
                 for color, state in board_state.players.items():

@@ -124,6 +124,10 @@ class ConfigManager:
             return {}
         except yaml.YAMLError as e:
             logger.error(f"Error parsing YAML {path}: {e}")
+            # Return empty dict - will regenerate on next save
+            return {}
+        except Exception as e:
+            logger.error(f"Unexpected error loading {path}: {e}")
             return {}
     
     def _save_yaml(self, path: str, data: dict) -> bool:
@@ -163,7 +167,21 @@ class ConfigManager:
     def load_calibration(self) -> dict:
         """Load calibration from file."""
         calibration_path = os.path.join(self.config_dir, 'calibration.yaml')
-        self.calibration = self._load_yaml(calibration_path)
+        
+        # Try to load, if fails delete corrupted file and use defaults
+        try:
+            self.calibration = self._load_yaml(calibration_path)
+        except Exception as e:
+            logger.error(f"Error parsing calibration, regenerating: {e}")
+            if os.path.exists(calibration_path):
+                os.remove(calibration_path)
+            self.calibration = {}
+        
+        # Merge with defaults
+        self._merge_with_defaults(self.calibration, self.DEFAULT_CALIBRATION)
+        
+        logger.info(f"Loaded calibration from {calibration_path}")
+        return self.calibration
         
         # Merge with defaults
         self._merge_with_defaults(self.calibration, self.DEFAULT_CALIBRATION)
