@@ -114,11 +114,29 @@ class BoardDetector:
             hsv_ranges: Custom HSV ranges for color detection
             calibration: Calibration data with board corners and offsets
         """
+        # If hsv_ranges uses string keys, convert to PlayerColor keys
+        if hsv_ranges and hsv_ranges:
+            first_key = list(hsv_ranges.keys())[0]
+            if isinstance(first_key, str):
+                hsv_ranges = self._convert_string_keys_to_enum(hsv_ranges)
+        
         self.hsv_ranges = hsv_ranges or self.DEFAULT_HSV_RANGES
         self.calibration = calibration or {}
         
         # Board mapping: relative positions (0.0-1.0) for each cell
         self._init_board_mapping()
+    
+    def _convert_string_keys_to_enum(self, hsv_ranges: dict) -> Dict[PlayerColor, dict]:
+        """Convert string keys to PlayerColor enum keys."""
+        result = {}
+        for key, value in hsv_ranges.items():
+            try:
+                color = PlayerColor(key)
+                result[color] = value
+            except ValueError:
+                # Skip unknown colors
+                pass
+        return result
     
     def _init_board_mapping(self):
         """Initialize board position mapping."""
