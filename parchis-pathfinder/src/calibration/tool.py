@@ -144,19 +144,22 @@ class CalibrationTool:
             ttk.Label(color_frame, textvariable=var, 
                      font=("Courier", 9)).pack(anchor=tk.W)
         
-        # HSV sliders
-        self.h_slider = ttk.Scale(color_frame, from_=0, to=179, 
-                                  label="Hue", orient=tk.HORIZONTAL,
+        # HSV sliders (use tk.Scale instead of ttk.Scale for label support)
+        ttk.Label(color_frame, text="Hue (0-179):").pack(anchor=tk.W)
+        self.h_slider = tk.Scale(color_frame, from_=0, to=179, 
+                                  orient=tk.HORIZONTAL,
                                   command=self._update_hsv)
         self.h_slider.pack(fill=tk.X, pady=2)
         
-        self.s_slider = ttk.Scale(color_frame, from_=0, to=255, 
-                                  label="Saturation", orient=tk.HORIZONTAL,
+        ttk.Label(color_frame, text="Saturation (0-255):").pack(anchor=tk.W)
+        self.s_slider = tk.Scale(color_frame, from_=0, to=255, 
+                                  orient=tk.HORIZONTAL,
                                   command=self._update_hsv)
         self.s_slider.pack(fill=tk.X, pady=2)
         
-        self.v_slider = ttk.Scale(color_frame, from_=0, to=255, 
-                                  label="Value", orient=tk.HORIZONTAL,
+        ttk.Label(color_frame, text="Value (0-255):").pack(anchor=tk.W)
+        self.v_slider = tk.Scale(color_frame, from_=0, to=255, 
+                                  orient=tk.HORIZONTAL,
                                   command=self._update_hsv)
         self.v_slider.pack(fill=tk.X, pady=2)
         
