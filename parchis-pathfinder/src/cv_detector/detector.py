@@ -61,8 +61,14 @@ class BoardState:
     confidence: float = 0.0
     calibration_offset: Tuple[int, int] = (0, 0)
     
-    def get_player(self, color: PlayerColor) -> PlayerState:
+    def get_player(self, color) -> PlayerState:
         """Get state for a specific player."""
+        # Accept both PlayerColor enum and string
+        if isinstance(color, str):
+            try:
+                color = PlayerColor(color)
+            except ValueError:
+                return None
         return self.players.get(color)
     
     def get_all_pieces(self) -> List[PiecePosition]:
