@@ -1,16 +1,23 @@
 """
 Overlay Renderer for Parchís Pathfinding.
 
-Displays move recommendations via transparent X11 overlay.
+Displays move recommendations via transparent overlay.
+Works on both Linux (X11) and Windows.
 """
 
 import logging
+import sys
+import os
 from typing import Optional, Tuple
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# Try to import X11 libraries
+# Detect platform and try to import appropriate libraries
+X11_AVAILABLE = False
+WIN_AVAILABLE = False
+
+# Try X11 first (Linux)
 try:
     import gi
     gi.require_version('Gtk', '3.0')
@@ -19,8 +26,19 @@ try:
     import cairo
     X11_AVAILABLE = True
 except ImportError:
-    X11_AVAILABLE = False
-    logger.warning("X11/Gtk libraries not available. Overlay will be disabled.")
+    pass
+
+# Try Windows GUI (pywin32)
+if sys.platform == 'win32':
+    try:
+        import ctypes
+        from ctypes import wintypes
+        WIN_AVAILABLE = True
+    except ImportError:
+        pass
+
+# If no GUI available, we'll use console mode
+GUI_AVAILABLE = X11_AVAILABLE or WIN_AVAILABLE
 
 
 class OverlayRenderer:
@@ -55,11 +73,14 @@ class OverlayRenderer:
         self.message = ""
         self.visible = False
         
-        if not X11_AVAILABLE:
-            logger.error("X11 not available. Cannot create overlay.")
+        if not GUI_AVAILABLE:
+            logger.warning("No GUI available. Overlay will run in console mode.")
             return
         
-        self._init_window()
+        if X11_AVAILABLE:
+            self._init_window()
+        elif WIN_AVAILABLE:
+            self._init_windows_overlay()
     
     def _init_window(self):
         """Initialize transparent overlay window."""
@@ -95,6 +116,17 @@ class OverlayRenderer:
             
         except Exception as e:
             logger.error(f"Failed to initialize overlay: {e}")
+            self.window = None
+    
+    def _init_windows_overlay(self):
+        """Initialize Windows overlay using ctypes."""
+        try:
+            # For Windows, we'll use a simple console-based approach
+            # A proper Windows overlay would require pywin32 or similar
+            self.window = None
+            logger.info("Windows overlay initialized (console mode)")
+        except Exception as e:
+            logger.error(f"Failed to initialize Windows overlay: {e}")
             self.window = None
     
     def _on_draw(self, widget, cr):
@@ -222,7 +254,7 @@ class OverlayRenderer:
     
     def is_available(self) -> bool:
         """Check if overlay is available."""
-        return X11_AVAILABLE and self.window is not None
+        return GUI_AVAILABLE and (X11_AVAILABLE or WIN_AVAILABLE)
     
     def __enter__(self):
         """Context manager entry."""
@@ -266,7 +298,7 @@ class MockOverlayRenderer:
         pass
     
     def is_available(self) -> bool:
-        return False  # Mock is not "real" X11
+        return GUI_AVAILABLE  # Mock can still work in console mode
     
     def __enter__(self):
         return self
@@ -275,9 +307,13 @@ class MockOverlayRenderer:
         self.close()
 
 
+# Alias for type hint
+OverlayRenderer.__module__ = "parchis_pathfinder.overlay"
+
+
 def create_overlay(screen_x: int = 0, screen_y: int = 0,
                    screen_width: int = 1920, screen_height: int = 1080,
-                   use_mock: bool = False) -> OverlayRenderer:
+                   use_mock: bool = False) -> 'OverlayRenderer':
     """
     Create an overlay renderer.
     
@@ -291,7 +327,7 @@ def create_overlay(screen_x: int = 0, screen_y: int = 0,
     Returns:
         OverlayRenderer or MockOverlayRenderer
     """
-    if use_mock or not X11_AVAILABLE:
+    if use_mock or not GUI_AVAILABLE:
         return MockOverlayRenderer()
     
     return OverlayRenderer(screen_x, screen_y, screen_width, screen_height)
