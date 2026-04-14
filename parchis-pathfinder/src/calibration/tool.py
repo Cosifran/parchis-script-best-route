@@ -284,38 +284,62 @@ class CalibrationTool:
         if self.screenshot is None:
             return
         
-        # Convert BGR to RGB for display
-        img_rgb = cv2.cvtColor(self.screenshot, cv2.COLOR_BGR2RGB)
-        
-        # Convert to PhotoImage
-        from PIL import Image, ImageTk
-        
-        # Resize to fit canvas
-        canvas_width = self.canvas.winfo_width() or 800
-        canvas_height = self.canvas.winfo_height() or 600
-        
-        img_height, img_width = img_rgb.shape[:2]
-        scale = min(canvas_width / img_width, canvas_height / img_height)
-        
-        new_width = int(img_width * scale)
-        new_height = int(img_height * scale)
-        
-        img_resized = cv2.resize(img_rgb, (new_width, new_height))
-        
-        self.photo = ImageTk.PhotoImage(Image.fromarray(img_resized))
-        
-        # Display
-        self.canvas.delete("all")
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
-        
-        # Draw corner markers
-        for corner, (rx, ry) in self.corners.items():
-            x = rx * new_width
-            y = ry * new_height
+        try:
+            # Convert BGR to RGB for display
+            img_rgb = cv2.cvtColor(self.screenshot, cv2.COLOR_BGR2RGB)
             
-            color = "yellow" if corner in ['top_left', 'bottom_right'] else "cyan"
-            self.canvas.create_oval(x-10, y-10, x+10, y+10, outline=color, width=2)
-            self.canvas.create_text(x, y-15, text=corner.replace('_', ' '), fill=color)
+            # Convert to PhotoImage
+            from PIL import Image, ImageTk
+            
+            # Force update to get canvas dimensions
+            self.root.update()
+            
+            # Resize to fit canvas
+            canvas_width = self.canvas.winfo_width()
+            canvas_height = self.canvas.winfo_height()
+            
+            # If canvas not yet rendered, use default
+            if canvas_width <= 1:
+                canvas_width = 800
+            if canvas_height <= 1:
+                canvas_height = 600
+            
+            img_height, img_width = img_rgb.shape[:2]
+            
+            # Validate image dimensions
+            if img_width <= 0 or img_height <= 0:
+                print("Error: Invalid image dimensions")
+                return
+            
+            scale = min(canvas_width / img_width, canvas_height / img_height)
+            
+            # Ensure scale is valid
+            if scale <= 0 or not (0 < scale < 1000):
+                scale = 1.0
+            
+            new_width = max(1, int(img_width * scale))
+            new_height = max(1, int(img_height * scale))
+            
+            img_resized = cv2.resize(img_rgb, (new_width, new_height))
+            
+            self.photo = ImageTk.PhotoImage(Image.fromarray(img_resized))
+            
+            # Display
+            self.canvas.delete("all")
+            self.canvas.configure(width=new_width, height=new_height)
+            self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
+            
+            # Draw corner markers
+            for corner, (rx, ry) in self.corners.items():
+                x = rx * new_width
+                y = ry * new_height
+                
+                color = "yellow" if corner in ['top_left', 'bottom_right'] else "cyan"
+                self.canvas.create_oval(x-10, y-10, x+10, y+10, outline=color, width=2)
+                self.canvas.create_text(x, y-15, text=corner.replace('_', ' '), fill=color)
+                
+        except Exception as e:
+            print(f"Error displaying screenshot: {e}")
     
     def _load_screenshot(self):
         """Load a screenshot file."""
